@@ -19,7 +19,20 @@ class Database{
      * @returns {User}
      */
     retrieveUser(user){
-        return this.users.find(user);
+        var foundPerson;
+        this.users.forEach(person => {
+            console.log("Parameter username: " + user.username +"\n Users Array Username: " +person.username);
+            if(user.username === person.username){
+                console.log("VALID USER FOUND: \n" +
+                    "Username: " + user.username + 
+                    "\nPassword: " + user.password +
+                    "\nEmail: " + user.email );
+                foundPerson = person;
+            }
+        });
+        return foundPerson == null ? -1 : foundPerson;
     }
 
 }
+
+module.exports = Database;

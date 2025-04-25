@@ -1,8 +1,9 @@
+const Database = require("../../Persistance/Database.js");
 class UserController{
 
     constructor(user_repo){
         this.user_repo = user_repo;
-        this.DB = Database();
+        this.DB = new Database();
     }
 
     createUser(user) {
@@ -16,9 +17,10 @@ class UserController{
      * @returns {User}
      */
     getUser(user){
-        console.log("Deez nuts getUser");
-        return retrieveUser(user);
+        return this.DB.retrieveUser(user);
     }
 
 
 }
+
+module.exports = UserController;
