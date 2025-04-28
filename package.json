@@ -2,7 +2,11 @@
   "devDependencies": {
     "jest": "^29.7.0"
   },
-  "scripts" : {
-    "test":"jest"
+  "scripts": {
+    "test": "jest",
+    "start": "node Project_Structure/Business/Controller.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
   }
 }
