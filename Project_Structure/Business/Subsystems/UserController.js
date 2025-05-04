@@ -22,6 +22,10 @@ class UserController{
         this.DB.updatePassword(user, password);
     }
 
+    deleteUser(user){
+        this.DB.deleteUser(user);
+    }
+
     /**
      * Retreives a given user from the db
      * @param {User} username 

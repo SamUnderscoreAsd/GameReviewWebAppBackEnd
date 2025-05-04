@@ -42,6 +42,13 @@ app.post("/api/updatePassword", (req,res) =>{
   res.send("Old password: " + data.user.password + "\nNew password" + data.password);
 })
 
+app.post("/api/deleteUser", (req,res)=>{
+  console.log("Deleting user...");
+  const data = req.body;
+  uc.deleteUser(data.user);
+  res.status(201).json({message: "User has been successfully deleted", data: data.user});
+})
+
 app.listen(3000, () => {
   console.log("The app has started on port 3000");
 });

@@ -77,6 +77,12 @@ class Database{
         console.log("New user's password: " + user.password);            
     }
 
+    deleteUser(user){
+        const userIndex = this.users.findIndex(person => person === user);
+
+        this.users.splice(userIndex, 1);
+    }
+
 }
 
 module.exports = Database;

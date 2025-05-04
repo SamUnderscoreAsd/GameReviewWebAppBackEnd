@@ -9,5 +9,7 @@ test("User CRUD Operations", () =>{
     expect(userController.createUser(sam))
     expect(userController.getUser(sam)).toBe(sam);
     expect(userController.getUser(fakeUser)).toBe(-1);
-    expect(userController.updateUser(sam,"racycodehacker"));
+    expect(userController.updateUsername(sam,"racycodehacker"));
+    expect(userController.deleteUser(sam));
+    expect(userController.getUser(sam)).toBe(-1);
 });
