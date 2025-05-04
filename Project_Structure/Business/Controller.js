@@ -13,13 +13,34 @@ app.get("/", (req, res) => {
   res.send(uc.DB.users);
 });
 
-app.post("/user", (req,res) =>{
+app.post("/api/createUser", (req,res) =>{
   console.log("Gonna Create a user now...");
   const data = req.body;
 
-  uc.createUser(new User("Sword105","testing","ethan@gmail.com"));
+  uc.createUser(new User(data.username, data.password, data.email))
   res.status(201).json({message: 'User made successfully', data: data});
 });
+
+app.post("/api/updateUsername", (req,res) =>{
+  console.log("Updating a user now...");
+  const data = req.body; 
+  uc.updateUsername(data.user, data.username);
+  res.send("Old username: " + data.user.username + "\nNew Username" + data.username);
+})
+
+app.post("/api/updateEmail", (req,res) =>{
+  console.log("Updating a email now...");
+  const data = req.body;
+  uc.updateEmail(data.user, data.email);
+  res.send("Old email: " + data.user.email + "\nNew email" + data.email);
+})
+
+app.post("/api/updatePassword", (req,res) =>{
+  console.log("Updating a password now...");
+  const data = req.body;
+  uc.updateUsername(data.user, data.password);
+  res.send("Old password: " + data.user.password + "\nNew password" + data.password);
+})
 
 app.listen(3000, () => {
   console.log("The app has started on port 3000");

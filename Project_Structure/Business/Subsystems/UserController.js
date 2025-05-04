@@ -7,8 +7,19 @@ class UserController{
     }
 
     createUser(user) {
-        console.log("Deez nuts createUser");
         this.DB.saveUser(user);
+    }
+
+    updateUsername(user, username){
+        this.DB.updateUsername(user, username);
+    }
+
+    updateEmail(user, email){
+        this.DB.updateEmail(user, email);
+    }
+
+    updatePassword(user,password){
+        this.DB.updatePassword(user, password);
     }
 
     /**
