@@ -1,3 +1,10 @@
+var mysql = require("mysql");
+
+var con = mysql.createConnection({
+  host: "localhost",
+  user: "mysql",
+  password: "deez"
+});
 class Database{
 
     constructor(){
@@ -11,6 +18,17 @@ class Database{
      */
     saveUser(user){
         this.users.push(user);
+        console.log("Attempting to push user to the database");
+
+        con.connect(function(err){
+            if(err) throw err;
+            console.log("Connected to databse successfully");
+            var sql = `INSERT INTO test_Table (username, password, email) VALUES (${user.username}, ${user.password}, ${email})`;
+            con.query(sql,function(err,result){
+                if(err) throw err;
+                console.log("The query should have worked");
+            });
+        });
     }
 
     /**

@@ -7,6 +7,9 @@
     "start": "node Project_Structure/Business/Controller.js"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "bootstrap": "^5.3.6",
+    "express": "^5.1.0",
+    "mysql": "^2.18.1",
+    "react-bootstrap": "^2.10.10"
   }
 }
