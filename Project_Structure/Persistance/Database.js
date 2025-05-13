@@ -1,10 +1,10 @@
-var mysql = require("mysql2");
+var mysql = require("mysql2/promise");
 
-var con = mysql.createConnection({
+var con = await mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "deez",
-  database: "mysql"
+  database: "TestDb"
 });
 class Database{
 
@@ -14,6 +14,8 @@ class Database{
 
     /**
      * saves a new user to the db
+     * TODO: CHECK IF NEW USER EMAIL AND USERNAME ALREADY EXIST IN THE DB, if so return -1
+     * TODO: MODIFY THE DATA FLOW TO NOT JUST RETURN VOID BUT TO RETURN AN INT
      * @param {User} user 
      * @returns {void}
      */
@@ -23,11 +25,12 @@ class Database{
 
         con.connect(function(err){
             if(err) throw err;
-            console.log("Connected to databse successfully");
+            //console.log("Connected to databse successfully");
             var sql = `INSERT INTO test_Table (username, password, email) VALUES ("${user.username}"," ${user.password}", "${user.email}")`;
             con.query(sql,function(err,result){
                 if(err) throw err;
-                console.log("The query should have worked");
+                //console.log("The query should have worked");
+                //console.log(result);
             });
         });
     }
