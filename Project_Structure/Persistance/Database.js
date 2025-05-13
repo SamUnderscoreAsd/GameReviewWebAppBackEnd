@@ -1,9 +1,10 @@
-var mysql = require("mysql");
+var mysql = require("mysql2");
 
 var con = mysql.createConnection({
   host: "localhost",
-  user: "mysql",
-  password: "deez"
+  user: "root",
+  password: "deez",
+  database: "mysql"
 });
 class Database{
 
@@ -23,7 +24,7 @@ class Database{
         con.connect(function(err){
             if(err) throw err;
             console.log("Connected to databse successfully");
-            var sql = `INSERT INTO test_Table (username, password, email) VALUES (${user.username}, ${user.password}, ${email})`;
+            var sql = `INSERT INTO test_Table (username, password, email) VALUES ("${user.username}"," ${user.password}", "${user.email}")`;
             con.query(sql,function(err,result){
                 if(err) throw err;
                 console.log("The query should have worked");
