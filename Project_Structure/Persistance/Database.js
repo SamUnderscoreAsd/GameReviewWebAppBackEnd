@@ -1,19 +1,11 @@
 var mysql = require("mysql2/promise");
 //when using require you must make sure not to make any asynchronous calls on the global level as to avoid conflicts in the event loop, because require() is a synchronous method
 
+const TABLE = "test_Table";
+
 class Database {
   constructor() {
-    //con is not defined FIX
     this.con = null;
-
-    /**
-         * mysql.createConnection({
-            host: "localhost",
-            user: "root",
-            password: "deez",
-            database: "TestDb"
-        });
-         */
 
     this.users = [];
   }
@@ -52,7 +44,7 @@ class Database {
    * @returns {void}
    */
   async saveUser(user) {
-    this.users.push(user);
+    //this.users.push(user);
     console.log("Attempting to push user to the database");
 
     await this.connect();
@@ -69,80 +61,62 @@ class Database {
 
   /**
    * retrives user from the db
-   * TODO ADD OVERLOADED VERSIONS TO HAVE MULTIPLE SEARCH PARAMETERS: username, email, anything else that can be used in the future
+   * assuming each username/email are unique to the user, we can use a SELECT and just choose
    * @returns {User}
    */
-  retrieveUser(user) {
-    var foundPerson;
-    this.users.forEach((person) => {
-      //console.log("Parameter username: " + user.username +"\n Users Array Username: " +person.username);
-      if (user.username === person.username) {
-        console.log(
-          "VALID USER FOUND: \n" +
-            "Username: " +
-            user.username +
-            "\nPassword: " +
-            user.password +
-            "\nEmail: " +
-            user.email
-        );
-        foundPerson = person;
-        return; //to escape the callback function after finding the correct person
-      }
-    });
-    return foundPerson == null ? -1 : foundPerson;
+  async retrieveUser(user) {
+    await this.connect();
+
+    var sql = `SELECT username, email FROM test_Table WHERE username = "${user.username}";`;
+    const [result] = await this.con.query(sql, [
+      user.username, 
+      user.email
+    ]);
+
+    await this.close();
+    return result;
   }
 
-  updateUsername(user, username) {
-    console.log("Old user's username: " + user.username);
-    const userIndex = this.users.findIndex(
-      (person) => person.username === user.username
-    );
+  async updateUsername(user, username) {
+    await this.connect();
 
-    if (userIndex != -1 && user.username !== username) {
-      this.users[userIndex].username = username;
-    } else {
-      console.log(userIndex);
-      throw new Error("Invalid new username inputted.");
-    }
+    var sql = `UPDATE ${TABLE} SET username = "${username}" WHERE username = "${user.username}"`;
 
-    console.log("New user's username: " + user.username);
+    await this.con.query(sql);
+
+    await this.close();
   }
-  updateEmail(user, email) {
-    console.log("Old user's email: " + user.email);
-    const userIndex = this.users.findIndex(
-      (person) => person.email === user.email
-    );
+  async updateEmail(user, email) {
+    await this.connect();
 
-    if (userIndex != -1 && user.email !== email) {
-      this.users[userIndex].email = email;
-    } else {
-      console.log(userIndex);
-      throw new Error("Invalid new username inputted.");
-    }
+    var sql = `UPDATE ${TABLE} SET email = "${email}" WHERE email = "${user.email}"`;
 
-    console.log("New user's email: " + user.email);
-  }
-  updatePassword(user, password) {
-    console.log("Old user's password: " + user.password);
-    const userIndex = this.users.findIndex(
-      (person) => person.password === user.password
-    );
-
-    if (userIndex != -1 && user.password !== password) {
-      this.users[userIndex].password = password;
-    } else {
-      console.log(userIndex);
-      throw new Error("Invalid new username inputted.");
-    }
-
-    console.log("New user's password: " + user.password);
+    await this.con.query(sql);
+    await this.close();
   }
 
-  deleteUser(user) {
-    const userIndex = this.users.findIndex((person) => person === user);
+  /**
+   * TODO: add a hash function to make the password more secure on the database such that it stores the hashed value on the database and is then unhashed
+   * upon accessing. Consider creating a second database table for the passwords.
+   * @param {*} user 
+   * @param {*} password 
+   */
+  async updatePassword(user, password) {
+    await this.connect();
 
-    this.users.splice(userIndex, 1);
+    var sql = `UPDATE ${TABLE} SET password = "${password}" WHERE username = "${user.username}"`;
+
+    await this.con.query(sql);
+    await this.close();
+  }
+
+  async deleteUser(user) {
+    await this.connect();
+
+    var sql = `DELETE FROM ${TABLE} WHERE username = "${user.username}"`;
+
+    await this.con.query(sql);
+    await this.close();
   }
 }
 

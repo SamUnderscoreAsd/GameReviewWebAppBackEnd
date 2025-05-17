@@ -8,16 +8,19 @@ var uc = new userController();
 app.use(express.json());//important middleware function that parses request body data into a json which is a more usable form of data for our server
 app.use(express.urlencoded());//another middleware function that allows your server to handle data from requests sending urlencoded data
 
-app.get("/", (req, res) => {
-  console.log("showing users");
-  res.send(uc.DB.users);
+app.post("/api/getUser", (req, res) => {
+  const data = req.body;
+  uc.getUser(data.user).then(retrievedData => {
+    //console.log(retrievedData);
+    res.send(retrievedData);
+  });
 });
 
 app.post("/api/createUser", (req,res) =>{
   console.log("Gonna Create a user now...");
   const data = req.body;
 
-  uc.createUser(new User(data.username, data.password, data.email))
+  uc.createUser(new User(data.user.username, data.user.password, data.user.email))
   res.status(201).json({message: 'User made successfully', data: data});
 });
 
@@ -38,7 +41,7 @@ app.post("/api/updateEmail", (req,res) =>{
 app.post("/api/updatePassword", (req,res) =>{
   console.log("Updating a password now...");
   const data = req.body;
-  uc.updateUsername(data.user, data.password);
+  uc.updatePassword(data.user, data.password);
   res.send("Old password: " + data.user.password + "\nNew password" + data.password);
 })
 
