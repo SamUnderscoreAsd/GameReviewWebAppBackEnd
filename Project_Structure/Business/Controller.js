@@ -1,12 +1,24 @@
 const express = require("express");
 const app = express();
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth2');
 const userController = require("./Subsystems/UserController");
 const User = require("./Models/User");
 //This is the facade that will instruct the subsystems to act upon user request
 var uc = new userController();
 
+require('./Subsystems/auth');
+
 app.use(express.json());//important middleware function that parses request body data into a json which is a more usable form of data for our server
 app.use(express.urlencoded());//another middleware function that allows your server to handle data from requests sending urlencoded data
+
+app.get("/", (req,res) =>{
+  res.send('<a href="/auth/google">Authenticate with Google</a>');
+})
+
+app.get('/auth/google',
+  passport.authenticate('google', {scope: ['email', 'profile']})
+)
 
 app.post("/api/getUser", (req, res) => {
   const data = req.body;
@@ -51,6 +63,9 @@ app.post("/api/deleteUser", (req,res)=>{
   uc.deleteUser(data.user);
   res.status(201).json({message: "User has been successfully deleted", data: data.user});
 })
+
+
+
 
 app.listen(3000, () => {
   console.log("The app has started on port 3000");

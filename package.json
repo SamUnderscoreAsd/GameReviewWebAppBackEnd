@@ -8,8 +8,12 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.6",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-session": "^1.18.1",
     "mysql2": "^3.14.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth2": "^0.2.0",
     "react-bootstrap": "^2.10.10"
   }
 }

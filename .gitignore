@@ -1,3 +1,6 @@
 #basic packages
 node_modules/
 
+#Important API information
+.env
+OAuth2.0Credentials.PNG
