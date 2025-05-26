@@ -1,9 +1,11 @@
 const express = require("express");
+const cors = require('cors');
 const app = express();
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth2');
 const userController = require("./Subsystems/UserController");
 const User = require("./Models/User");
+const PORT = 3001
 //This is the facade that will instruct the subsystems to act upon user request
 var uc = new userController();
 
@@ -11,6 +13,11 @@ require('./Subsystems/auth');
 
 app.use(express.json());//important middleware function that parses request body data into a json which is a more usable form of data for our server
 app.use(express.urlencoded());//another middleware function that allows your server to handle data from requests sending urlencoded data
+app.use(cors({//cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from 
+  //being able to send requests from outside the intended locations.
+   origin: 'http://localhost:3000',
+  credentials: true 
+}));
 
 app.get("/", (req,res) =>{
   res.send('<a href="/auth/google">Authenticate with Google</a>');
@@ -67,7 +74,7 @@ app.post("/api/deleteUser", (req,res)=>{
 
 
 
-app.listen(3000, () => {
-  console.log("The app has started on port 3000");
+app.listen(PORT, () => {
+  console.log(`The app has started on port ${PORT}`);
 });
 
