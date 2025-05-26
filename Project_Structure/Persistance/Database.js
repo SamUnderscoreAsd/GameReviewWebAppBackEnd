@@ -1,88 +1,123 @@
-class Database{
+var mysql = require("mysql2/promise");
+//when using require you must make sure not to make any asynchronous calls on the global level as to avoid conflicts in the event loop, because require() is a synchronous method
 
-    constructor(){
-        this.users = [];
+const TABLE = "test_Table";
+
+class Database {
+  constructor() {
+    this.con = null;
+
+    this.users = [];
+  }
+
+  async connect() {
+    try {
+      this.con = await mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "deez",
+        database: "TestDb",
+      });
+      console.log("Connected to database successfully");
+    } catch (err) {
+      console.error("Couldn't connect to the database...");
+      throw err;
     }
+  }
 
-    /**
-     * saves a new user to the db
-     * @param {User} user 
-     * @returns {void}
-     */
-    saveUser(user){
-        this.users.push(user);
+  async close() {
+    try {
+      await this.con.end();
+      this.con = null;
+      console.log("Connection to the Database was closed");
+    } catch (err) {
+      console.error("Failed to disconnect from the database...");
+      throw err;
     }
+  }
 
-    /**
-     * retrives user from the db
-     * TODO ADD OVERLOADED VERSIONS TO HAVE MULTIPLE SEARCH PARAMETERS: username, email, anything else that can be used in the future
-     * @returns {User}
-     */
-    retrieveUser(user){
-        var foundPerson;
-        this.users.forEach(person => {
-            //console.log("Parameter username: " + user.username +"\n Users Array Username: " +person.username);
-            if(user.username === person.username){
-                console.log("VALID USER FOUND: \n" +
-                    "Username: " + user.username + 
-                    "\nPassword: " + user.password +
-                    "\nEmail: " + user.email );
-                foundPerson = person;
-                return;//to escape the callback function after finding the correct person
-            }
-        });
-        return foundPerson == null ? -1 : foundPerson;
-    }
+  /**
+   * saves a new user to the db
+   * TODO: CHECK IF NEW USER EMAIL AND USERNAME ALREADY EXIST IN THE DB, if so return -1
+   * TODO: MODIFY THE DATA FLOW TO NOT JUST RETURN VOID BUT TO RETURN AN INT
+   * @param {User} user
+   * @returns {void}
+   */
+  async saveUser(user) {
+    //this.users.push(user);
+    console.log("Attempting to push user to the database");
 
-    updateUsername(user, username){
-        console.log("Old user's username: " + user.username);
-        const userIndex = this.users.findIndex(person => person.username === user.username);
+    await this.connect();
+    var sql = `INSERT INTO test_Table (username, password, email) VALUES ("${user.username}"," ${user.password}", "${user.email}")`;
 
-        if(userIndex != -1 && user.username !== username){
-            this.users[userIndex].username = username;
-        }
-        else{
-            console.log(userIndex);
-            throw new Error("Invalid new username inputted.");
-        }
+    const [result] = await this.con.query(sql, [
+      user.username, 
+      user.password, 
+      user.email
+    ]);
 
-        console.log("New user's username: " + user.username);            
-    }
-    updateEmail(user, email){
-        console.log("Old user's email: " + user.email);
-        const userIndex = this.users.findIndex(person => person.email === user.email);
+    await this.close();
+  }
 
-        if(userIndex != -1 && user.email !== email){
-            this.users[userIndex].email = email;
-        }
-        else{
-            console.log(userIndex);
-            throw new Error("Invalid new username inputted.");
-        }
+  /**
+   * retrives user from the db
+   * assuming each username/email are unique to the user, we can use a SELECT and just choose
+   * @returns {User}
+   */
+  async retrieveUser(user) {
+    await this.connect();
 
-        console.log("New user's email: " + user.email);            
-    }
-    updatePassword(user, password){
-        console.log("Old user's password: " + user.password);
-        const userIndex = this.users.findIndex(person => person.password === user.password);
+    var sql = `SELECT username, email FROM test_Table WHERE username = "${user.username}";`;
+    const [result] = await this.con.query(sql, [
+      user.username, 
+      user.email
+    ]);
 
-        if(userIndex != -1 && user.password !== password){
-            this.users[userIndex].password = password;
-        }
-        else{
-            console.log(userIndex);
-            throw new Error("Invalid new username inputted.");
-        }
+    await this.close();
+    return result;
+  }
 
-        console.log("New user's password: " + user.password);            
-    }
+  async updateUsername(user, username) {
+    await this.connect();
 
-    deleteUser(user){
-        const userIndex = this.users.findIndex(person => person === user);
+    var sql = `UPDATE ${TABLE} SET username = "${username}" WHERE username = "${user.username}"`;
 
-        this.users.splice(userIndex, 1);
-    }
+    await this.con.query(sql);
 
+    await this.close();
+  }
+  async updateEmail(user, email) {
+    await this.connect();
+
+    var sql = `UPDATE ${TABLE} SET email = "${email}" WHERE email = "${user.email}"`;
+
+    await this.con.query(sql);
+    await this.close();
+  }
+
+  /**
+   * TODO: add a hash function to make the password more secure on the database such that it stores the hashed value on the database and is then unhashed
+   * upon accessing. Consider creating a second database table for the passwords.
+   * @param {*} user 
+   * @param {*} password 
+   */
+  async updatePassword(user, password) {
+    await this.connect();
+
+    var sql = `UPDATE ${TABLE} SET password = "${password}" WHERE username = "${user.username}"`;
+
+    await this.con.query(sql);
+    await this.close();
+  }
+
+  async deleteUser(user) {
+    await this.connect();
+
+    var sql = `DELETE FROM ${TABLE} WHERE username = "${user.username}"`;
+
+    await this.con.query(sql);
+    await this.close();
+  }
 }
 
 module.exports = Database;

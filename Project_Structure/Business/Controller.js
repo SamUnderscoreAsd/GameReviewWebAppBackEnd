@@ -1,23 +1,45 @@
 const express = require("express");
+const cors = require('cors');
 const app = express();
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth2');
 const userController = require("./Subsystems/UserController");
 const User = require("./Models/User");
+const PORT = 3001
 //This is the facade that will instruct the subsystems to act upon user request
 var uc = new userController();
 
+require('./Subsystems/auth');
+
 app.use(express.json());//important middleware function that parses request body data into a json which is a more usable form of data for our server
 app.use(express.urlencoded());//another middleware function that allows your server to handle data from requests sending urlencoded data
+app.use(cors({//cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from 
+  //being able to send requests from outside the intended locations.
+   origin: 'http://localhost:3000',
+  credentials: true 
+}));
 
-app.get("/", (req, res) => {
-  console.log("showing users");
-  res.send(uc.DB.users);
+app.get("/", (req,res) =>{
+  res.send('<a href="/auth/google">Authenticate with Google</a>');
+})
+
+app.get('/auth/google',
+  passport.authenticate('google', {scope: ['email', 'profile']})
+)
+
+app.post("/api/getUser", (req, res) => {
+  const data = req.body;
+  uc.getUser(data.user).then(retrievedData => {
+    //console.log(retrievedData);
+    res.send(retrievedData);
+  });
 });
 
 app.post("/api/createUser", (req,res) =>{
   console.log("Gonna Create a user now...");
   const data = req.body;
 
-  uc.createUser(new User(data.username, data.password, data.email))
+  uc.createUser(new User(data.user.username, data.user.password, data.user.email))
   res.status(201).json({message: 'User made successfully', data: data});
 });
 
@@ -38,7 +60,7 @@ app.post("/api/updateEmail", (req,res) =>{
 app.post("/api/updatePassword", (req,res) =>{
   console.log("Updating a password now...");
   const data = req.body;
-  uc.updateUsername(data.user, data.password);
+  uc.updatePassword(data.user, data.password);
   res.send("Old password: " + data.user.password + "\nNew password" + data.password);
 })
 
@@ -49,7 +71,10 @@ app.post("/api/deleteUser", (req,res)=>{
   res.status(201).json({message: "User has been successfully deleted", data: data.user});
 })
 
-app.listen(3000, () => {
-  console.log("The app has started on port 3000");
+
+
+
+app.listen(PORT, () => {
+  console.log(`The app has started on port ${PORT}`);
 });
 
