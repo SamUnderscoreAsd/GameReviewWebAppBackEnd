@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 var mysql = require("mysql2/promise");
 var bcrypt = require("bcrypt");
 //when using require you must make sure not to make any asynchronous calls on the global level as to avoid conflicts in the event loop, because require() is a synchronous method
@@ -42,7 +42,6 @@ class Database {
   /**
    * saves a new user to the db
    * TODO: CHECK IF NEW USER EMAIL AND USERNAME ALREADY EXIST IN THE DB, if so return -1
-   * TODO: MODIFY THE DATA FLOW TO NOT JUST RETURN VOID BUT TO RETURN AN INT
    * @param {User} user
    * @returns {void}
    */
@@ -51,18 +50,17 @@ class Database {
 
     await this.connect();
     var sql = `INSERT INTO ${process.env.USER_TABLE} (username, password, email) VALUES (?,?,?)`;
-    try{
+    try {
       const hash = await bcrypt.hash(user.password, saltRounds);
       console.log("Hashed password: " + hash);
       const [result] = await this.con.query(sql, [
-        user.username, 
-        hash, 
-        user.email
-    ]);
-  }
-  catch(err){
-    console.error("Could not upload user to Database" + err);
-  }
+        user.username,
+        hash,
+        user.email,
+      ]);
+    } catch (err) {
+      console.error("Could not upload user to Database" + err);
+    }
 
     await this.close();
   }
@@ -77,13 +75,51 @@ class Database {
 
     var sql = `SELECT username, email FROM ${process.env.USER_TABLE} WHERE username = ?;`;
     const [result] = await this.con.query(sql, [
-      user.username, 
+      user.username,
       user.email,
-      user.password
+      user.password,
     ]);
 
     await this.close();
     return result;
+  }
+
+  async authenticateUser(user) {
+    //TODO: fix return value isAuthenticated does not accuractely represent the isMatch variable
+
+    var isAuthenticated = false;
+    var [result] = [];
+
+    await this.connect();
+
+    try {
+      var sql = `SELECT username, password FROM ${process.env.USER_TABLE} WHERE username = ?`;
+      result = await this.con.query(sql, [user.username]);
+    } catch (err) {
+      console.error(err);
+    }
+
+    console.log(result.length);
+    if (result.length > 0) {
+      console.log(user);
+      console.log(result[0]);
+      await bcrypt.compare(
+        user.password,
+        result[0].password,
+        function (err, isMatch) {
+          if (err) {
+            console.error(err);
+          }
+          console.log("isMatched: " + isMatch);
+          isAuthenticated = isMatch;
+        }
+      );
+    }
+
+    console.log("isAuthenticated: " + isAuthenticated);
+
+    await this.close();
+    return isAuthenticated;
   }
 
   async updateUsername(user, username) {
@@ -107,24 +143,24 @@ class Database {
   /**
    * TODO: add a hash function to make the password more secure on the database such that it stores the hashed value on the database and is then unhashed
    * upon accessing. Consider creating a second database table for the passwords.
-   * @param {*} user 
-   * @param {*} password 
+   * @param {*} user
+   * @param {*} password
    */
   async updatePassword(user, password) {
     await this.connect();
 
-    var sql = `UPDATE ${USER_TABLE} SET password = "${password}" WHERE username = "${user.username}"`;
+    var sql = `UPDATE ${USER_TABLE} SET password = "${password}" WHERE username = ?`;
 
-    await this.con.query(sql);
+    await this.con.query(sql, user.username);
     await this.close();
   }
 
   async deleteUser(user) {
     await this.connect();
 
-    var sql = `DELETE FROM ${USER_TABLE} WHERE username = "${user.username}"`;
+    var sql = `DELETE FROM ${USER_TABLE} WHERE username = ?`;
 
-    await this.con.query(sql);
+    await this.con.query(sql, user.username);
     await this.close();
   }
 }

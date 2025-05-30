@@ -10,6 +10,10 @@ class UserController{
         this.DB.saveUser(user);
     }
 
+    authenticateUser(user){
+        this.DB.authenticateUser(user);
+    }
+
     updateUsername(user, username){
         this.DB.updateUsername(user, username);
     }

@@ -2,6 +2,8 @@ const UControl = require("../Subsystems/UserController.js");
 const User = require("../Models/User.js");
 
 
+//TODO: look into mocking data set for testing and code coverage
+
 test("User CRUD Operations", () =>{
     let userController = new UControl();
     const sam = new User("SamUnderscoreAsd", "test", "samlovesvideogames1@gmail.com");
