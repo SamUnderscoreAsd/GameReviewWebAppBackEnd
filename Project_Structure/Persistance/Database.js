@@ -88,21 +88,21 @@ class Database {
     //TODO: fix return value isAuthenticated does not accuractely represent the isMatch variable
 
     var isAuthenticated = false;
-    var [result] = [];
+    var result;
 
     await this.connect();
 
     try {
       var sql = `SELECT username, password FROM ${process.env.USER_TABLE} WHERE username = ?`;
-      result = await this.con.query(sql, [user.username]);
+      [result] = await this.con.query(sql, [user.username]);
+
+      
     } catch (err) {
       console.error(err);
     }
 
     console.log(result.length);
     if (result.length > 0) {
-      console.log(user);
-      console.log(result[0]);
       await bcrypt.compare(
         user.password,
         result[0].password,
@@ -112,14 +112,16 @@ class Database {
           }
           console.log("isMatched: " + isMatch);
           isAuthenticated = isMatch;
+          console.log(isAuthenticated);
+          return isAuthenticated;
         }
       );
     }
 
-    console.log("isAuthenticated: " + isAuthenticated);
+    //console.log("isAuthenticated: " + isAuthenticated);
 
     await this.close();
-    return isAuthenticated;
+    //return isAuthenticated;
   }
 
   async updateUsername(user, username) {
