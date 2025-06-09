@@ -20,6 +20,7 @@ class Database {
         user: "root",
         password: "deez",
         database: "TestDb",
+        charset: "utf8mb4",
       });
       console.log("Connected to database successfully");
     } catch (err) {
@@ -31,7 +32,6 @@ class Database {
   async close() {
     try {
       await this.con.end();
-      this.con = null;
       console.log("Connection to the Database was closed");
     } catch (err) {
       console.error("Failed to disconnect from the database...");
@@ -52,7 +52,7 @@ class Database {
     var sql = `INSERT INTO ${process.env.USER_TABLE} (username, password, email) VALUES (?,?,?)`;
     try {
       const hash = await bcrypt.hash(user.password, saltRounds);
-      console.log("Hashed password: " + hash);
+      //console.log("Hashed password: " + hash);
       const [result] = await this.con.query(sql, [
         user.username,
         hash,
@@ -73,7 +73,7 @@ class Database {
   async retrieveUser(user) {
     await this.connect();
 
-    var sql = `SELECT username, email FROM ${process.env.USER_TABLE} WHERE username = ?;`;
+    var sql = `SELECT username, password, email FROM ${process.env.USER_TABLE} WHERE username = ?;`;
     const [result] = await this.con.query(sql, [
       user.username,
       user.email,
@@ -85,9 +85,6 @@ class Database {
   }
 
   async authenticateUser(user) {
-    //TODO: fix return value isAuthenticated does not accuractely represent the isMatch variable
-
-    var isAuthenticated = false;
     var result;
 
     await this.connect();
@@ -96,38 +93,33 @@ class Database {
       var sql = `SELECT username, password FROM ${process.env.USER_TABLE} WHERE username = ?`;
       [result] = await this.con.query(sql, [user.username]);
 
-      
+      if (result.length > 0) {
+        const isMatch = await new Promise((resolve, reject) => {
+          bcrypt.compare(
+            user.password,
+            result[0].password,
+            function (err, isMatch) {
+              if (err) {
+                reject(err);
+              }
+              resolve(isMatch);
+            }
+          );
+        });
+        await this.close();
+        return isMatch;
+      }
     } catch (err) {
       console.error(err);
     }
-
-    console.log(result.length);
-    if (result.length > 0) {
-      await bcrypt.compare(
-        user.password,
-        result[0].password,
-        function (err, isMatch) {
-          if (err) {
-            console.error(err);
-          }
-          console.log("isMatched: " + isMatch);
-          isAuthenticated = isMatch;
-          console.log(isAuthenticated);
-          return isAuthenticated;
-        }
-      );
-    }
-
-    //console.log("isAuthenticated: " + isAuthenticated);
-
     await this.close();
-    //return isAuthenticated;
+    return false;
   }
 
   async updateUsername(user, username) {
     await this.connect();
 
-    var sql = `UPDATE ${USER_TABLE} SET username = "${username}" WHERE username = "${user.username}"`;
+    var sql = `UPDATE ${process.env.USER_TABLE} SET username = "${username}" WHERE username = "${user.username}"`;
 
     await this.con.query(sql);
 
@@ -136,7 +128,7 @@ class Database {
   async updateEmail(user, email) {
     await this.connect();
 
-    var sql = `UPDATE ${USER_TABLE} SET email = "${email}" WHERE email = "${user.email}"`;
+    var sql = `UPDATE ${process.env.USER_TABLE} SET email = "${email}" WHERE email = "${user.email}"`;
 
     await this.con.query(sql);
     await this.close();
@@ -151,7 +143,7 @@ class Database {
   async updatePassword(user, password) {
     await this.connect();
 
-    var sql = `UPDATE ${USER_TABLE} SET password = "${password}" WHERE username = ?`;
+    var sql = `UPDATE ${process.env.USER_TABLE} SET password = "${password}" WHERE username = ?`;
 
     await this.con.query(sql, user.username);
     await this.close();
@@ -160,7 +152,7 @@ class Database {
   async deleteUser(user) {
     await this.connect();
 
-    var sql = `DELETE FROM ${USER_TABLE} WHERE username = ?`;
+    var sql = `DELETE FROM ${process.env.USER_TABLE} WHERE username = ?`;
 
     await this.con.query(sql, user.username);
     await this.close();

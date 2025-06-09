@@ -26,18 +26,25 @@ app.get("/", (req,res) =>{
   res.send('<a href="/auth/google">Authenticate with Google</a>');
 })
 
-app.post('/api/login',(req,res) =>{
-  //passport.authenticate('google', {scope: ['email', 'profile']})
-  const data = req.body;
-  var isAuthenticated = uc.authenticateUser(data.user);
-  res.send(isAuthenticated);
+app.post('/api/login',async (req,res) =>{
+  try {
+    const data = req.body;
+    const isAuthenticated = await uc.authenticateUser(data.user);
+
+    res.json({
+      success: true,
+      authenticated: isAuthenticated,
+    });
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 app.post("/api/getUser", (req, res) => {
   const data = req.body;
   uc.getUser(data.user).then(retrievedData => {
-    //console.log(retrievedData);
-    res.send(retrievedData);
+    // res.send(retrievedData);
+    res.status(201).send(retrievedData);
   });
 });
 
