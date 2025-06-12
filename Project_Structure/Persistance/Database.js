@@ -3,40 +3,28 @@ var mysql = require("mysql2/promise");
 var bcrypt = require("bcrypt");
 //when using require you must make sure not to make any asynchronous calls on the global level as to avoid conflicts in the event loop, because require() is a synchronous method
 
-const TABLE = process.env.TABLE;
+//TODO: The mysql .query() statements are leaving hanging async operations after running, I don't think its going to effect the performance of the application but check if it will.
+//https://sidorares.github.io/node-mysql2/docs mysql2 docs
+
 const saltRounds = 3;
 
 class Database {
   constructor() {
     this.con = null;
 
-    this.users = [];
-  }
-
-  async connect() {
-    try {
-      this.con = await mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "deez",
-        database: "TestDb",
-        charset: "utf8mb4",
-      });
-      console.log("Connected to database successfully");
-    } catch (err) {
-      console.error("Couldn't connect to the database...");
-      throw err;
-    }
-  }
-
-  async close() {
-    try {
-      await this.con.end();
-      console.log("Connection to the Database was closed");
-    } catch (err) {
-      console.error("Failed to disconnect from the database...");
-      throw err;
-    }
+    this.pool = mysql.createPool({
+      host: "localhost",
+      user: "root",
+      password: "deez",
+      database: "TestDb",
+      waitForConnections: true,
+      connectionLimit: 10,
+      maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
+      idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+    });
   }
 
   /**
@@ -46,23 +34,21 @@ class Database {
    * @returns {void}
    */
   async saveUser(user) {
-    //console.log("Attempting to push user to the database");
-
-    await this.connect();
+    console.log("trying to connect to database for save user method");
+    
     var sql = `INSERT INTO ${process.env.USER_TABLE} (username, password, email) VALUES (?,?,?)`;
     try {
       const hash = await bcrypt.hash(user.password, saltRounds);
-      //console.log("Hashed password: " + hash);
-      const [result] = await this.con.query(sql, [
+      const [result] = await this.pool.query(sql, [
         user.username,
         hash,
         user.email,
       ]);
+      console.log(result);
     } catch (err) {
-      console.error("Could not upload user to Database" + err);
+      console.log(err);
+      console.error("Could not upload user to Database");
     }
-
-    await this.close();
   }
 
   /**
@@ -71,27 +57,22 @@ class Database {
    * @returns {User}
    */
   async retrieveUser(user) {
-    await this.connect();
 
     var sql = `SELECT username, password, email FROM ${process.env.USER_TABLE} WHERE username = ?;`;
-    const [result] = await this.con.query(sql, [
+    const [result] = await this.pool.query(sql, [
       user.username,
       user.email,
       user.password,
     ]);
-
-    await this.close();
     return result;
   }
 
   async authenticateUser(user) {
     var result;
 
-    await this.connect();
-
     try {
       var sql = `SELECT username, password FROM ${process.env.USER_TABLE} WHERE username = ?`;
-      [result] = await this.con.query(sql, [user.username]);
+      [result] = await this.pool.query(sql, [user.username]);
 
       if (result.length > 0) {
         const isMatch = await new Promise((resolve, reject) => {
@@ -106,56 +87,46 @@ class Database {
             }
           );
         });
-        await this.close();
         return isMatch;
       }
     } catch (err) {
       console.error(err);
     }
-    await this.close();
     return false;
   }
 
   async updateUsername(user, username) {
-    await this.connect();
 
     var sql = `UPDATE ${process.env.USER_TABLE} SET username = "${username}" WHERE username = "${user.username}"`;
 
-    await this.con.query(sql);
-
-    await this.close();
+    await this.pool.query(sql);
   }
   async updateEmail(user, email) {
-    await this.connect();
 
     var sql = `UPDATE ${process.env.USER_TABLE} SET email = "${email}" WHERE email = "${user.email}"`;
 
-    await this.con.query(sql);
-    await this.close();
+    await this.pool.query(sql);
   }
 
   /**
-   * TODO: add a hash function to make the password more secure on the database such that it stores the hashed value on the database and is then unhashed
-   * upon accessing. Consider creating a second database table for the passwords.
    * @param {*} user
    * @param {*} password
    */
   async updatePassword(user, password) {
-    await this.connect();
-
-    var sql = `UPDATE ${process.env.USER_TABLE} SET password = "${password}" WHERE username = ?`;
-
-    await this.con.query(sql, user.username);
-    await this.close();
+    try {
+      var hashedPassword = bcrypt.hash(password, saltRounds);
+      var sql = `UPDATE ${process.env.USER_TABLE} SET password = "${hashedPassword}" WHERE username = ?`;
+      await this.pool.query(sql, user.username);
+    } catch (err) {
+      console.log("Error Updating user's password" + err);
+    }
   }
 
   async deleteUser(user) {
-    await this.connect();
 
     var sql = `DELETE FROM ${process.env.USER_TABLE} WHERE username = ?`;
 
-    await this.con.query(sql, user.username);
-    await this.close();
+    await this.pool.query(sql, user.username);
   }
 }
 
