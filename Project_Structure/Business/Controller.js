@@ -15,23 +15,36 @@ app.use(express.json());//important middleware function that parses request body
 app.use(express.urlencoded());//another middleware function that allows your server to handle data from requests sending urlencoded data
 app.use(cors({//cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from 
   //being able to send requests from outside the intended locations.
-   origin: 'http://localhost:3000',
+   origin: "*",//origin is set to all, this is a vulnerability, but allows me to continue developing and later deal with the consequences
+
   credentials: true 
 }));
 
 app.get("/", (req,res) =>{
+  var isTrue = uc.authenticateUser(new User("JohnCarlos2012", "panasonicFIUaustin"));
+
   res.send('<a href="/auth/google">Authenticate with Google</a>');
 })
 
-app.get('/auth/google',
-  passport.authenticate('google', {scope: ['email', 'profile']})
-)
+app.post('/api/login',async (req,res) =>{
+  try {
+    const data = req.body;
+    const isAuthenticated = await uc.authenticateUser(data.user);
+
+    res.json({
+      success: true,
+      authenticated: isAuthenticated,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
 
 app.post("/api/getUser", (req, res) => {
   const data = req.body;
   uc.getUser(data.user).then(retrievedData => {
-    //console.log(retrievedData);
-    res.send(retrievedData);
+    // res.send(retrievedData);
+    res.status(201).send(retrievedData);
   });
 });
 

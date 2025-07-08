@@ -6,23 +6,27 @@ class UserController{
         this.DB = new Database();
     }
 
-    createUser(user) {
+    async createUser(user) {
         this.DB.saveUser(user);
     }
 
-    updateUsername(user, username){
+    async authenticateUser(user){
+        return this.DB.authenticateUser(user);
+    }
+
+    async updateUsername(user, username){
         this.DB.updateUsername(user, username);
     }
 
-    updateEmail(user, email){
+    async updateEmail(user, email){
         this.DB.updateEmail(user, email);
     }
 
-    updatePassword(user,password){
+    async updatePassword(user,password){
         this.DB.updatePassword(user, password);
     }
 
-    deleteUser(user){
+    async deleteUser(user){
         this.DB.deleteUser(user);
     }
 
@@ -31,7 +35,7 @@ class UserController{
      * @param {User} username 
      * @returns {User}
      */
-    getUser(user){
+    async getUser(user){
         return this.DB.retrieveUser(user);
     }
 

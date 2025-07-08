@@ -1,62 +1,54 @@
+require("dotenv").config();
 var mysql = require("mysql2/promise");
+var bcrypt = require("bcrypt");
 //when using require you must make sure not to make any asynchronous calls on the global level as to avoid conflicts in the event loop, because require() is a synchronous method
 
-const TABLE = "test_Table";
+//TODO: The mysql .query() statements are leaving hanging async operations after running, I don't think its going to effect the performance of the application but check if it will.
+//https://sidorares.github.io/node-mysql2/docs mysql2 docs
+
+const saltRounds = 3;
 
 class Database {
   constructor() {
     this.con = null;
 
-    this.users = [];
-  }
-
-  async connect() {
-    try {
-      this.con = await mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "deez",
-        database: "TestDb",
-      });
-      console.log("Connected to database successfully");
-    } catch (err) {
-      console.error("Couldn't connect to the database...");
-      throw err;
-    }
-  }
-
-  async close() {
-    try {
-      await this.con.end();
-      this.con = null;
-      console.log("Connection to the Database was closed");
-    } catch (err) {
-      console.error("Failed to disconnect from the database...");
-      throw err;
-    }
+    this.pool = mysql.createPool({
+      host: "localhost",
+      user: "root",
+      password: "deez",
+      database: "TestDb",
+      waitForConnections: true,
+      connectionLimit: 10,
+      maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
+      idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+    });
   }
 
   /**
    * saves a new user to the db
    * TODO: CHECK IF NEW USER EMAIL AND USERNAME ALREADY EXIST IN THE DB, if so return -1
-   * TODO: MODIFY THE DATA FLOW TO NOT JUST RETURN VOID BUT TO RETURN AN INT
    * @param {User} user
    * @returns {void}
    */
   async saveUser(user) {
-    //this.users.push(user);
-    console.log("Attempting to push user to the database");
-
-    await this.connect();
-    var sql = `INSERT INTO test_Table (username, password, email) VALUES ("${user.username}"," ${user.password}", "${user.email}")`;
-
-    const [result] = await this.con.query(sql, [
-      user.username, 
-      user.password, 
-      user.email
-    ]);
-
-    await this.close();
+    console.log("trying to connect to database for save user method");
+    
+    var sql = `INSERT INTO ${process.env.USER_TABLE} (username, password, email) VALUES (?,?,?)`;
+    try {
+      const hash = await bcrypt.hash(user.password, saltRounds);
+      const [result] = await this.pool.query(sql, [
+        user.username,
+        hash,
+        user.email,
+      ]);
+      console.log(result);
+    } catch (err) {
+      console.log(err);
+      console.error("Could not upload user to Database");
+    }
   }
 
   /**
@@ -65,58 +57,76 @@ class Database {
    * @returns {User}
    */
   async retrieveUser(user) {
-    await this.connect();
 
-    var sql = `SELECT username, email FROM test_Table WHERE username = "${user.username}";`;
-    const [result] = await this.con.query(sql, [
-      user.username, 
-      user.email
+    var sql = `SELECT username, password, email FROM ${process.env.USER_TABLE} WHERE username = ?;`;
+    const [result] = await this.pool.query(sql, [
+      user.username,
+      user.email,
+      user.password,
     ]);
-
-    await this.close();
     return result;
   }
 
+  async authenticateUser(user) {
+    var result;
+
+    try {
+      var sql = `SELECT username, password FROM ${process.env.USER_TABLE} WHERE username = ?`;
+      [result] = await this.pool.query(sql, [user.username]);
+
+      if (result.length > 0) {
+        const isMatch = await new Promise((resolve, reject) => {
+          bcrypt.compare(
+            user.password,
+            result[0].password,
+            function (err, isMatch) {
+              if (err) {
+                reject(err);
+              }
+              resolve(isMatch);
+            }
+          );
+        });
+        return isMatch;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    return false;
+  }
+
   async updateUsername(user, username) {
-    await this.connect();
 
-    var sql = `UPDATE ${TABLE} SET username = "${username}" WHERE username = "${user.username}"`;
+    var sql = `UPDATE ${process.env.USER_TABLE} SET username = "${username}" WHERE username = "${user.username}"`;
 
-    await this.con.query(sql);
-
-    await this.close();
+    await this.pool.query(sql);
   }
   async updateEmail(user, email) {
-    await this.connect();
 
-    var sql = `UPDATE ${TABLE} SET email = "${email}" WHERE email = "${user.email}"`;
+    var sql = `UPDATE ${process.env.USER_TABLE} SET email = "${email}" WHERE email = "${user.email}"`;
 
-    await this.con.query(sql);
-    await this.close();
+    await this.pool.query(sql);
   }
 
   /**
-   * TODO: add a hash function to make the password more secure on the database such that it stores the hashed value on the database and is then unhashed
-   * upon accessing. Consider creating a second database table for the passwords.
-   * @param {*} user 
-   * @param {*} password 
+   * @param {*} user
+   * @param {*} password
    */
   async updatePassword(user, password) {
-    await this.connect();
-
-    var sql = `UPDATE ${TABLE} SET password = "${password}" WHERE username = "${user.username}"`;
-
-    await this.con.query(sql);
-    await this.close();
+    try {
+      var hashedPassword = bcrypt.hash(password, saltRounds);
+      var sql = `UPDATE ${process.env.USER_TABLE} SET password = "${hashedPassword}" WHERE username = ?`;
+      await this.pool.query(sql, user.username);
+    } catch (err) {
+      console.log("Error Updating user's password" + err);
+    }
   }
 
   async deleteUser(user) {
-    await this.connect();
 
-    var sql = `DELETE FROM ${TABLE} WHERE username = "${user.username}"`;
+    var sql = `DELETE FROM ${process.env.USER_TABLE} WHERE username = ?`;
 
-    await this.con.query(sql);
-    await this.close();
+    await this.pool.query(sql, user.username);
   }
 }
 
