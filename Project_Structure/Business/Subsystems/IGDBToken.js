@@ -22,6 +22,7 @@ class IGDBToken{
             }
 
             const data = await response.json();
+            console.log(data);
 
             this.accessToken = data.access_token;
             this.tokenExpiry = Date.now() + (data.expires_in * 1000);
@@ -36,12 +37,13 @@ class IGDBToken{
     async getValidToken(){
         //if there is 5 minutes or less left on the currect access token, then refresh the token
         const fiveMinutes = 5 * 60 * 1000;
-        const shouldRefresh = !this.accessToken || !this.tokenExpiry || (Date.now() + fiveMinutes) >= this. tokenExpiry;
+        const shouldRefresh = !this.accessToken || !this.tokenExpiry || (Date.now() + fiveMinutes) >= this.tokenExpiry;
 
         if(shouldRefresh){
-            return await this.getAccessToken();
+            return await this.getToken();
         }
         else{
+            print("the token is ok");
             return this.accessToken;
         }
     }
