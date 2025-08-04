@@ -25,7 +25,11 @@ app.use(cors({//cors package basically allows the server to specify from where i
 }));
 
 const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
-token.getValidToken();
+token.getValidToken().then(()=>{
+  token.getRandomGames().then(results => {
+    console.log(results);
+  })
+});
 
 app.get("/", (req,res) =>{
   var isTrue = uc.authenticateUser(new User("JohnCarlos2012", "panasonicFIUaustin"));

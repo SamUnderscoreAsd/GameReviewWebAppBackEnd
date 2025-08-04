@@ -47,6 +47,29 @@ class IGDBToken{
             return this.accessToken;
         }
     }
+
+    async getRandomGames(){
+        console.log(this.accessToken);
+        const url = "https://api.igdb.com/v4/games"
+        try{
+            const results = await fetch(url,{
+                method: 'POST',
+                headers: {
+                    "Accept": "application/json",
+                    "Client-ID" : this.clientID,
+                    "Authorization" : `Bearer ${this.accessToken}`,
+                },
+                body : "fields *;"
+            })
+
+            const data = await results.json();
+            return data;
+        }
+        catch(e){
+            console.log("the Get Random Games method failed ig :(" + e);
+            console.error(e);
+        }
+    }
 }
 
 module.exports = IGDBToken;
