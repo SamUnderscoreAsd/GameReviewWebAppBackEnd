@@ -38,13 +38,12 @@ app.get("/", (req,res) =>{
 })
 
 app.post('/api/login',async (req,res) =>{
+  isAuthenticated = false
   try {
     const data = req.body;
-    const isAuthenticated = await uc.authenticateUser(data.user);
-
-    res.json({
-      success: true,
-      authenticated: isAuthenticated,
+    await uc.authenticateUser(data.user).then(isMatch => {
+      console.log(isMatch);
+      res.send(isMatch);
     });
   } catch (err) {
     console.error(err);
@@ -65,6 +64,7 @@ app.post("/api/createUser", (req,res) =>{
 
   uc.createUser(new User(data.user.username, data.user.password, data.user.email))
   res.status(201).json({message: 'User made successfully', data: data});
+  res.redirect('http://localhost:3000/')
 });
 
 app.post("/api/updateUsername", (req,res) =>{
