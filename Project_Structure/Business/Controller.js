@@ -10,6 +10,9 @@ const PORT = 3001
 //This is the facade that will instruct the subsystems to act upon user request
 var uc = new userController();
 
+//TODO UPDATE ENDPOINT NAMES TO BE RESTFUL API
+//use noun based naming ask gpt
+
 require('./Subsystems/auth');
 
 app.use(express.json());//important middleware function that parses request body data into a json which is a more usable form of data for our server
@@ -24,12 +27,12 @@ app.use(cors({//cors package basically allows the server to specify from where i
   credentials: true 
 }));
 
-const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
-token.getValidToken().then(()=>{
-  token.getRandomGames().then(results => {
-    console.log(results);
-  })
-});
+// const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
+// token.getValidToken().then(()=>{
+//   token.getRandomGames().then(results => {
+//     console.log(results);
+//   })
+// });
 
 app.get("/", (req,res) =>{
   var isTrue = uc.authenticateUser(new User("JohnCarlos2012", "panasonicFIUaustin"));
@@ -40,12 +43,11 @@ app.get("/", (req,res) =>{
 app.post('/api/login',async (req,res) =>{
   try {
     const data = req.body;
-    const isAuthenticated = await uc.authenticateUser(data.user);
-
-    res.json({
-      success: true,
-      authenticated: isAuthenticated,
+    await uc.authenticateUser(data.user)
+    .then(isMatch =>{
+      res.status(201).send(isMatch);
     });
+
   } catch (err) {
     console.error(err);
   }

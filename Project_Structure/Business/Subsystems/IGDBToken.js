@@ -22,15 +22,16 @@ class IGDBToken{
             }
 
             const data = await response.json();
-            console.log(data);
+            //console.log(data);
 
             this.accessToken = data.access_token;
+            console.log(this.accessToken);
             this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
             console.log(`Token expires in: ${Math.floor(data.expires_in/3600)} hours`);
         }
         catch(err){
-            print(err);
+            console.log(err);
         }
     }
 
@@ -43,7 +44,7 @@ class IGDBToken{
             return await this.getToken();
         }
         else{
-            print("the token is ok");
+            console.log("the token is ok");
             return this.accessToken;
         }
     }
