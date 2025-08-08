@@ -44,7 +44,6 @@ class Database {
         hash,
         user.email,
       ]);
-      console.log(result);
     } catch (err) {
       console.log(err);
       console.error("Could not upload user to Database");
