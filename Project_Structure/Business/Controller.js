@@ -5,6 +5,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth2');
 const userController = require("./Subsystems/UserController");
 const User = require("./Models/User");
+const cookieParser = require('cookie-parser');
 const IGDBToken = require('./Subsystems/IGDBToken');
 const PORT = 3001
 //This is the facade that will instruct the subsystems to act upon user request
@@ -17,12 +18,14 @@ require('./Subsystems/auth');
 
 app.use(express.json());//important middleware function that parses request body data into a json which is a more usable form of data for our server
 
+app.use(cookieParser());//middleware function that enables easier use of implement
+
 app.use(express.urlencoded());//another middleware function that allows your server to handle data from requests sending urlencoded 
 
 app.use(cors({//cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from 
   //being able to send requests from outside the intended locations.
 
-   origin: "*",//origin is set to all, this is a vulnerability, but allows me to continue developing and later deal with the consequences
+   origin: "http://localhost:3000",//origin is set to all, this is a vulnerability, but allows me to continue developing and later deal with the consequences
 
   credentials: true 
 }));
@@ -41,11 +44,22 @@ app.get("/", (req,res) =>{
 })
 
 app.post('/api/login',async (req,res) =>{
-  isAuthenticated = false
+  const data = req.body
+  console.log('' + req.cookies.SessionID)
+  if(req.cookies.SessionID != null){
+    res.status(201).send(True)
+  }
   try {
-    const data = req.body;
     await uc.authenticateUser(data.user)
     .then(isMatch =>{
+      //console.log("isMatch " + isMatch);
+      if(isMatch){
+        sessionID = Math.floor(Math.random() * (9999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
+        res.cookie("SessionID", sessionID.toString(), {
+          maxAge: 3600000,
+          httpOnly: true
+        })
+      }
       res.status(201).send(isMatch);
     });
 
@@ -63,7 +77,7 @@ app.post("/api/getUser", (req, res) => {
 });
 
 app.post("/api/createUser", (req,res) =>{
-  console.log("Gonna Create a user now...");
+  //console.log("Gonna Create a user now...");
   const data = req.body;
 
   uc.createUser(new User(data.user.username, data.user.password, data.user.email))
