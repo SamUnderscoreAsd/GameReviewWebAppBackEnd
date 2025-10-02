@@ -12,6 +12,7 @@ const PORT = 3001
 var uc = new userController();
 
 //TODO UPDATE ENDPOINT NAMES TO BE RESTFUL API
+//TODO LEARN HOW TO PROPERLY USE JEST
 //use noun based naming ask gpt
 
 require('./Subsystems/auth');
@@ -25,7 +26,7 @@ app.use(express.urlencoded());//another middleware function that allows your ser
 app.use(cors({//cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from 
   //being able to send requests from outside the intended locations.
 
-   origin: "http://localhost:3000",//origin is set to all, this is a vulnerability, but allows me to continue developing and later deal with the consequences
+   origin: "http://localhost:3000",
 
   credentials: true 
 }));
@@ -54,7 +55,7 @@ app.post('/api/login',async (req,res) =>{
     .then(isMatch =>{
       //console.log("isMatch " + isMatch);
       if(isMatch){
-        sessionID = Math.floor(Math.random() * (9999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
+        sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
         res.cookie("SessionID", sessionID.toString(), {
           maxAge: 3600000,
           httpOnly: true

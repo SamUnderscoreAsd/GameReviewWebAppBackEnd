@@ -2,9 +2,11 @@ require("dotenv").config();
 var mysql = require("mysql2/promise");
 var bcrypt = require("bcrypt");
 //when using require you must make sure not to make any asynchronous calls on the global level as to avoid conflicts in the event loop, because require() is a synchronous method
-
+//TODO: REDO THE CRUD OPERATIONS TO FIT NEW USERS DB
 //TODO: The mysql .query() statements are leaving hanging async operations after running, I don't think its going to effect the performance of the application but check if it will.
 //https://sidorares.github.io/node-mysql2/docs mysql2 docs
+//TODO: ADD ERROR HANDLING, the structure to gracefully handle errors is in place. But I need to have a way for it to return specific messages if certain errors occur
+//This will enable me to have more accurate/dynamic error alerts for my frontend. It also highlights faults in the system more accurately.
 
 const saltRounds = 3;
 
@@ -16,7 +18,7 @@ class Database {
       host: "localhost",
       user: "root",
       password: "deez",
-      database: "TestDb",
+      database: "USERDB",
       waitForConnections: true,
       connectionLimit: 10,
       maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
@@ -26,6 +28,41 @@ class Database {
       keepAliveInitialDelay: 0,
     });
   }
+
+  /**
+   * Method to automatically handle session tokens for authenticated users.
+   * TODO: function should be able to add new session token for authenticated users
+   * @param {*} sessionID 
+   */
+  async updateSessionToken(sessionID, user){
+      var insertSql = `INSERT INTO ${process.env.SESSION_TABLE} (sessionID, expires) VALUES (?,?)`
+      var updateSql = `UPDATE ${process.env.USER_TABLE} SET sessionID = ?  WHERE email = ?`
+
+      expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).expireTimetoISOString();//Gets the date seven days from now and converts it to format accepted by mySQL
+
+      /**
+       * Logic:
+       * Upon login issue a new session ID.
+       * If SessionID for the user exists replace the sessionID with the new one and drops the old one from the table.
+       */
+
+      try{
+        const [insertResult] = await this.pool.query(insertSql,[
+          sessionID,
+          expires
+        ]);
+
+        const [updateResult] = await this.pool.query(updateSql,[
+          sessionID,
+          user.email
+        ])
+      }
+      catch(err){
+
+      }
+  }
+
+
 
   /**
    * saves a new user to the db
@@ -45,10 +82,11 @@ class Database {
         user.email,
       ]);
     } catch (err) {
-      console.log(err);
-      console.error("Could not upload user to Database");
+      console.error("Could not upload user to Database" + err);
     }
   }
+
+
 
   /**
    * retrives user from the db
@@ -123,9 +161,13 @@ class Database {
 
   async deleteUser(user) {
 
-    var sql = `DELETE FROM ${process.env.USER_TABLE} WHERE username = ?`;
-
-    await this.pool.query(sql, user.username);
+    var sql = `DELETE FROM ${process.env.USER_TABLE} WHERE email = ?`;
+    try{
+      await this.pool.query(sql, user.email);
+    }
+    catch (err){
+      console.log("couldn't delete user" + err);
+    }
   }
 }
 
