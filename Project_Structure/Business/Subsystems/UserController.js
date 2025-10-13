@@ -6,6 +6,10 @@ class UserController{
         this.DB = new Database();
     }
 
+    async updateSession(sessionID, user){
+        this.DB.updateSessionToken(sessionID, user);
+    }
+
     async createUser(user) {
         this.DB.saveUser(user);
     }
@@ -30,13 +34,12 @@ class UserController{
         this.DB.deleteUser(user);
     }
 
-    /**
-     * Retreives a given user from the db
-     * @param {User} username 
-     * @returns {User}
-     */
     async getUser(user){
         return this.DB.retrieveUser(user);
+    }
+
+    async getSession(sessionID){
+        return this.DB.retrieveSession(sessionID);
     }
 
 

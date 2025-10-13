@@ -31,20 +31,14 @@ class Database {
 
   /**
    * Method to automatically handle session tokens for authenticated users.
-   * TODO: function should be able to add new session token for authenticated users
+   * TODO: 
    * @param {*} sessionID 
    */
   async updateSessionToken(sessionID, user){
       var insertSql = `INSERT INTO ${process.env.SESSION_TABLE} (sessionID, expires) VALUES (?,?)`
-      var updateSql = `UPDATE ${process.env.USER_TABLE} SET sessionID = ?  WHERE email = ?`
+      var updateSql = `UPDATE ${process.env.USER_TABLE} SET sessionID = ?  WHERE username = ?`
 
-      expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).expireTimetoISOString();//Gets the date seven days from now and converts it to format accepted by mySQL
-
-      /**
-       * Logic:
-       * Upon login issue a new session ID.
-       * If SessionID for the user exists replace the sessionID with the new one and drops the old one from the table.
-       */
+      var expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
       try{
         const [insertResult] = await this.pool.query(insertSql,[
@@ -52,13 +46,14 @@ class Database {
           expires
         ]);
 
+        //console.log(`about to try and update the session table with the session ID ${sessionID} and the username ${user.username}`);
         const [updateResult] = await this.pool.query(updateSql,[
           sessionID,
-          user.email
+          user.username
         ])
       }
       catch(err){
-
+        console.error(err);
       }
   }
 
@@ -71,7 +66,7 @@ class Database {
    * @returns {void}
    */
   async saveUser(user) {
-    console.log("trying to connect to database for save user method");
+    //console.log("trying to connect to database for save user method");
     
     var sql = `INSERT INTO ${process.env.USER_TABLE} (username, password, email) VALUES (?,?,?)`;
     try {
@@ -102,6 +97,18 @@ class Database {
       user.password,
     ]);
     return result;
+  }
+
+  async retrieveSession(sessionID){
+
+    var sql = `SELECT Expires FROM ${process.env.SESSION_TABLE} WHERE sessionID = ?;`;
+    try {
+      const [result] = await this.pool.query(sql, sessionID);
+      return result;
+    } catch (err) {
+      console.error(err);
+    }
+
   }
 
   async authenticateUser(user) {
