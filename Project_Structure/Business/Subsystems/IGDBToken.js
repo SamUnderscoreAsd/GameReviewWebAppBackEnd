@@ -28,7 +28,7 @@ class IGDBToken{
             console.log(this.accessToken);
             this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
-            console.log(`Token expires in: ${Math.floor(data.expires_in/3600)} hours`);
+            //console.log(`Token expires in: ${Math.floor(data.expires_in/3600)} hours`);
         }
         catch(err){
             console.log(err);
@@ -50,7 +50,6 @@ class IGDBToken{
     }
 
     async getRandomGames(){
-        console.log(this.accessToken);
         const url = "https://api.igdb.com/v4/games"
         try{
             const results = await fetch(url,{
@@ -60,7 +59,7 @@ class IGDBToken{
                     "Client-ID" : this.clientID,
                     "Authorization" : `Bearer ${this.accessToken}`,
                 },
-                body : "fields *;"
+                body : "fields name,artworks,artworks.image_id,aggregated_rating,aggregated_rating_count;"
             })
 
             const data = await results.json();

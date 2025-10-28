@@ -36,12 +36,12 @@ app.use(
   })
 );
 
-// const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
-// token.getValidToken().then(()=>{
-//   token.getRandomGames().then(results => {
-//     console.log(results);
-//   })
-// });
+const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
+token.getValidToken().then(()=>{
+  token.getRandomGames().then(results => {
+    console.log(results);
+  })
+});
 
 app.get("/", (req, res) => {
   var isTrue = uc.authenticateUser(
@@ -54,7 +54,7 @@ app.get("/", (req, res) => {
 app.post("/api/retreiveSession", async (req, res) => {
   const data = req.body.sessionID;
   const session = await uc.getSession(data);
-  console.log(session[0]);
+  //console.log(session[0]);
 
   res.status(201).json({
       status: true,
