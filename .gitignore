@@ -1,6 +1,9 @@
 #basic packages
 node_modules/
 
+#testing information thats not important to prod
+coverage/
+
 #Important API information
 .env
 OAuth2.0Credentials.PNG
