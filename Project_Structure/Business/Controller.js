@@ -30,13 +30,15 @@ app.use(
     //cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from
     //being able to send requests from outside the intended locations.
 
-    origin: "http://localhost:3000",
+    // origin: "http://localhost:3000",
+    origin: "*",
+
 
     credentials: true,
   })
 );
 
-// const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
+const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
 // token.getValidToken().then(()=>{
 //   token.getRandomGames().then(results => {
 //     console.log(results);
@@ -49,6 +51,16 @@ app.get("/", (req, res) => {
   );
 
   res.send('<a href="/auth/google">Authenticate with Google</a>');
+});
+
+app.post('/api/get10RandomGames', async (req,res)=>{
+
+  await token.getValidToken();
+  //console.log('this is the access token' + token.accessToken)
+  const gameList = await token.getRandomGames();
+  //console.log(gameList);
+
+  res.status(200).send(gameList);
 });
 
 app.post("/api/retreiveSession", async (req, res) => {

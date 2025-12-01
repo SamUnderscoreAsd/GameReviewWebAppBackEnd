@@ -4,3 +4,7 @@ node_modules/
 #Important API information
 .env
 OAuth2.0Credentials.PNG
+
+#database layout
+#linux version:
+USERDB_BACKUP_UTF8.sql

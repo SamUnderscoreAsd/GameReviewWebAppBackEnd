@@ -25,7 +25,7 @@ class IGDBToken{
             //console.log(data);
 
             this.accessToken = data.access_token;
-            console.log(this.accessToken);
+            console.log('this is the access token' + this.accessToken);
             this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
             console.log(`Token expires in: ${Math.floor(data.expires_in/3600)} hours`);
@@ -60,7 +60,7 @@ class IGDBToken{
                     "Client-ID" : this.clientID,
                     "Authorization" : `Bearer ${this.accessToken}`,
                 },
-                body : "fields *;"
+                body : "fields name, rating, cover.image_id, artworks; limit 20; where rating > 60;"
             })
 
             const data = await results.json();
