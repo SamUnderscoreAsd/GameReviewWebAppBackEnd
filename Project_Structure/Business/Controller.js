@@ -30,8 +30,8 @@ app.use(
     //cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from
     //being able to send requests from outside the intended locations.
 
-    // origin: "http://localhost:3000",
-    origin: "*",
+    origin: "http://localhost:3000",
+    //origin: "*",
 
 
     credentials: true,
@@ -53,11 +53,13 @@ app.get("/", (req, res) => {
   res.send('<a href="/auth/google">Authenticate with Google</a>');
 });
 
-app.post('/api/get10RandomGames', async (req,res)=>{
-
+app.post('/api/getGames', async (req,res)=>{
   await token.getValidToken();
   //console.log('this is the access token' + token.accessToken)
-  const gameList = await token.getRandomGames();
+
+  const body = req.body;
+
+  const gameList = await token.gameRequestHandler(body.category);
   //console.log(gameList);
 
   res.status(200).send(gameList);
