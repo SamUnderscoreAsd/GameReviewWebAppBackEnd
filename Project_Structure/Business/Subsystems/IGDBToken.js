@@ -49,14 +49,17 @@ class IGDBToken{
         }
     }
 
-    async gameRequestHandler(category){
+    async gameRequestHandler(requestType, value){
 
-        if(category == 'random'){
+        if(requestType === 'random'){
             console.log('getting random games');
             return this.getRandomGames();
         }
+        else if(requestType === "detail"){
+            return this.getGameDetails(value);
+        }
         else{
-            return this.getCategorizedGames(category);
+            return this.getCategorizedGames(value);
         }
 
     }
@@ -77,7 +80,7 @@ class IGDBToken{
             })
 
             const data = await results.json();
-            console.log(data);
+            //console.log(data);
             return data;
         }
         catch(e){
@@ -115,6 +118,7 @@ class IGDBToken{
 
      async getGameDetails(gameID){
         const url = "https://api.igdb.com/v4/games"
+        
         try{
             const results = await fetch(url,{
                 method: 'POST',
@@ -123,7 +127,7 @@ class IGDBToken{
                     "Client-ID" : this.clientID,
                     "Authorization" : `Bearer ${this.accessToken}`,
                 },
-                body : `fields name, rating, artworks;limit 1; id = ${gameID};`
+                body : `fields name, rating, rating_count, cover.image_id, summary, artworks;limit 1; where id = ${gameID};`
             })
 
             const data = await results.json();
@@ -131,8 +135,7 @@ class IGDBToken{
             return data;
         }
         catch(e){
-            console.log("the Get Random Games method failed ig :(" + e);
-            console.error(e);
+            console.log("the Get detail Games method failed ig :(" + e);
         }
     }
 }

@@ -31,7 +31,7 @@ app.use(
     //being able to send requests from outside the intended locations.
 
     origin: "http://localhost:3000",
-    //origin: "*",
+    // origin: "*",
 
 
     credentials: true,
@@ -55,12 +55,8 @@ app.get("/", (req, res) => {
 
 app.post('/api/getGames', async (req,res)=>{
   await token.getValidToken();
-  //console.log('this is the access token' + token.accessToken)
-
   const body = req.body;
-
-  const gameList = await token.gameRequestHandler(body.category);
-  //console.log(gameList);
+  const gameList = await token.gameRequestHandler(body.requestType, body.value);
 
   res.status(200).send(gameList);
 });
