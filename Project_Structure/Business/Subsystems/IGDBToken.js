@@ -77,7 +77,7 @@ class IGDBToken{
             })
 
             const data = await results.json();
-            //console.log(data);
+            console.log(data);
             return data;
         }
         catch(e){
@@ -101,6 +101,29 @@ class IGDBToken{
                     "Authorization" : `Bearer ${this.accessToken}`,
                 },
                 body : `fields name, rating, cover.image_id, artworks; limit 15; offset ${offset};where rating > 60 & genres = ${category};`
+            })
+
+            const data = await results.json();
+            //console.log(data);
+            return data;
+        }
+        catch(e){
+            console.log("the Get Random Games method failed ig :(" + e);
+            console.error(e);
+        }
+    }
+
+     async getGameDetails(gameID){
+        const url = "https://api.igdb.com/v4/games"
+        try{
+            const results = await fetch(url,{
+                method: 'POST',
+                headers: {
+                    "Accept": "application/json",
+                    "Client-ID" : this.clientID,
+                    "Authorization" : `Bearer ${this.accessToken}`,
+                },
+                body : `fields name, rating, artworks;limit 1; id = ${gameID};`
             })
 
             const data = await results.json();
