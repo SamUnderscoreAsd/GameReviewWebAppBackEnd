@@ -61,7 +61,6 @@ class IGDBToken{
         else{
             return this.getCategorizedGames(value);
         }
-
     }
 
     async getRandomGames(){

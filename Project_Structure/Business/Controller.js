@@ -8,6 +8,7 @@ const User = require("./Models/User");
 const cookieParser = require("cookie-parser");
 const IGDBToken = require("./Subsystems/IGDBToken");
 const PORT = 3001;
+
 //This is the facade that will instruct the subsystems to act upon user request
 var uc = new userController();
 
@@ -30,8 +31,8 @@ app.use(
     //cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from
     //being able to send requests from outside the intended locations.
 
-    origin: "http://localhost:3000",
-    // origin: "*",
+    //origin: "http://localhost:3000",
+    origin: "*",
 
 
     credentials: true,
@@ -75,19 +76,58 @@ app.post("/api/retreiveSession", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   const data = req.body;
 
-  await uc.authenticateUser(data.user).then((isMatch) => {
-    
-    if (isMatch) {
-      sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
+  const userID = await uc.authenticateUser(data.user);
+
+  if(userID){
+    sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
+      res.cookie("UserId", userID.toString(),{
+        maxAge: 604800000,
+        httpOnly: true,
+      })
+
       res.cookie("SessionID", sessionID.toString(), {
         maxAge: 604800000, //7 days in ms
         httpOnly: true,
       });
       uc.updateSession(sessionID, data.user);
+
+      res.status(201).send(userID);
     }
-    res.status(201).send(isMatch);
-  });
 });
+
+app.post("/api/createReview", async (req,res)=>{
+  const data = req.body;
+
+  await uc.createReview(data.user,data.gameId,data.review,data.reviewScore);
+
+  res.status(201).send();
+})
+
+app.post("/api/getReviews", async (req,res)=>{
+  const data = req.body;
+
+  const results = await uc.getReviews(data.requestType, data.id);
+
+  res.status(201).send(results);
+} )
+
+app.post("/api/updateReview", async (req,res)=>{
+  const data = req.body;
+
+  await uc.updateReview(data.review, data.reviewScore, data.reviewId);
+
+  res.status(201).send();
+})
+
+app.post("/api/deleteReview", async (req,res)=>{
+  const data = req.body;
+
+  //TODO: CHECK IF USERID MATCHES COOKIE USER ID
+
+  await uc.deleteReview(data.reviewId);
+
+  res.status(201).send();
+})
 
 app.post("/api/getUser", (req, res) => {
   const data = req.body;

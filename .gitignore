@@ -8,3 +8,6 @@ OAuth2.0Credentials.PNG
 #database layout
 #linux version:
 USERDB_BACKUP_UTF8.sql
+
+#Testing folder that does matter
+coverage/
