@@ -31,8 +31,8 @@ app.use(
     //cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from
     //being able to send requests from outside the intended locations.
 
-    //origin: "http://localhost:3000",
-    origin: "*",
+    origin: "http://localhost:3000",
+    //origin: "*",
 
 
     credentials: true,
@@ -105,7 +105,6 @@ app.post("/api/createReview", async (req,res)=>{
 
 app.post("/api/getReviews", async (req,res)=>{
   const data = req.body;
-
   const results = await uc.getReviews(data.requestType, data.id);
 
   res.status(201).send(results);
@@ -175,9 +174,7 @@ app.post("/api/updatePassword", (req, res) => {
   console.log("Updating a password now...");
   const data = req.body;
   uc.updatePassword(data.user, data.password);
-  res.send(
-    "Old password: " + data.user.password + "\nNew password" + data.password
-  );
+  res.status(201).send();
 });
 
 app.post("/api/deleteUser", (req, res) => {
