@@ -30,7 +30,8 @@ class Database {
   }
 
   async getGameReviews(gameId){
-    var selectSQL = `SELECT review, reviewScore dateCreated from ${process.env.REVIEW_TABLE} WHERE gameId = ?`;
+    var selectSQL = `SELECT r.*, u.username FROM ${process.env.REVIEW_TABLE} r INNER JOIN ${process.env.USER_TABLE} u ON r.userId = u.ID WHERE gameId = ?`;
+    //var selectSQL = `SELECT review, reviewScore dateCreated from ${process.env.REVIEW_TABLE} WHERE gameId = ?`;
 
     try{
       const [result] = await this.pool.query(selectSQL,[
@@ -43,7 +44,7 @@ class Database {
   }
 
   async getUserReviews(userId){
-    var selectSQL = `SELECT review, reviewScore dateCreated from ${process.env.REVIEW_TABLE} WHERE userId = ?`;
+    //var selectSQL = `SELECT review, reviewScore dateCreated from ${process.env.REVIEW_TABLE} WHERE userId = ?`;
 
     try{
       const [result] = await this.pool.query(selectSQL,[
