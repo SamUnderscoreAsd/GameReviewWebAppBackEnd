@@ -82,9 +82,6 @@ app.post("/api/login", async (req, res) => {
 
   if(userID){
     sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
-      res.cookie("UserId", userID.toString(),{
-        maxAge: 604800000,
-      })
 
       res.cookie("SessionID", sessionID.toString(), {
         maxAge: 604800000, //7 days in ms
