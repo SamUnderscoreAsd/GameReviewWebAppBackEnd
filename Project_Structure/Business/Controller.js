@@ -18,6 +18,8 @@ var uc = new userController();
 //TODO LEARN HOW TO PROPERLY USE JEST
 //use noun based naming ask gpt
 
+//Look into adding a middleware function that immediately accesses the user's id and append it to the req body
+
 require("./Subsystems/auth");
 
 app.use(express.json()); //important middleware function that parses request body data into a json which is a more usable form of data for our server
@@ -35,24 +37,25 @@ app.use(
     //origin: "*",
 
 
-    credentials: true,
+    credentials: true,//allows cookies to be sent
   })
 );
+  
+  async function sessionMiddleware(req, res, next) {
+    const sessionID = req.cookies.SessionID;
+
+    const results = await uc.getSession(sessionID);
+    const userid = results[0].ID;
+
+    console.log(userid);
+
+    req.user = {
+      ID : userid
+    };
+    next();
+  }
 
 const token = new IGDBToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
-// token.getValidToken().then(()=>{
-//   token.getRandomGames().then(results => {
-//     console.log(results);
-//   })
-// });
-
-app.get("/", (req, res) => {
-  var isTrue = uc.authenticateUser(
-    new User("JohnCarlos2012", "panasonicFIUaustin")
-  );
-
-  res.send('<a href="/auth/google">Authenticate with Google</a>');
-});
 
 app.post('/api/getGames', async (req,res)=>{
   await token.getValidToken();
@@ -65,11 +68,10 @@ app.post('/api/getGames', async (req,res)=>{
 app.post("/api/retreiveSession", async (req, res) => {
   const data = req.body.sessionID;
   const session = await uc.getSession(data);
-  console.log(session[0]);
 
   res.status(201).json({
       status: true,
-      expires: session[0].Expires
+      expires: session[0]
     });
 });
 
@@ -82,7 +84,6 @@ app.post("/api/login", async (req, res) => {
     sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
       res.cookie("UserId", userID.toString(),{
         maxAge: 604800000,
-        httpOnly: true,
       })
 
       res.cookie("SessionID", sessionID.toString(), {
@@ -95,10 +96,9 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
-app.post("/api/createReview", async (req,res)=>{
+app.post("/api/createReview", sessionMiddleware,async (req,res)=>{
   const data = req.body;
-
-  await uc.createReview(data.user,data.gameId,data.review,data.reviewScore);
+  await uc.createReview(req.user,data.gameId,data.review,data.reviewScore);
 
   res.status(201).send();
 })

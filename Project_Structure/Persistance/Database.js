@@ -57,11 +57,12 @@ class Database {
   }
 
   async createReview(user, gameId, review, reviewScore) {
+    console.log("In the dB user.id is : " + JSON.stringify(user));
     var insertSql = `INSERT INTO ${process.env.REVIEW_TABLE} (userId, gameId, review, reviewScore) VALUES(?,?,?,?)`;
 
     try {
       const [insertResults] = await this.pool.query(insertSql, [
-        user.id,
+        user.ID,
         gameId,
         review,
         reviewScore,
@@ -162,9 +163,9 @@ class Database {
   }
 
   async retrieveSession(sessionID) {
-    var sql = `SELECT Expires FROM ${process.env.SESSION_TABLE} WHERE sessionID = ?;`;
+    var sql = `SELECT u.ID, u.username, s.Expires FROM ${process.env.USER_TABLE} u INNER JOIN ${process.env.SESSION_TABLE} s ON u.SessionID = s.sessionID WHERE s.sessionID = ?`
     try {
-      const [result] = await this.pool.query(sql, sessionID);
+      const [result] = await this.pool.query(sql, [sessionID]);
       return result;
     } catch (err) {
       console.error(err);
