@@ -1,13 +1,11 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth2");
 const userController = require("./Subsystems/UserController");
 const User = require("./Models/User");
 const cookieParser = require("cookie-parser");
 const IGDBToken = require("./Subsystems/IGDBToken");
-const PORT = 3001;
 
 //This is the facade that will instruct the subsystems to act upon user request
 var uc = new userController();
@@ -33,7 +31,7 @@ app.use(
     //cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from
     //being able to send requests from outside the intended locations.
 
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL,
     //origin: "*",
 
 
@@ -47,7 +45,7 @@ app.use(
     const results = await uc.getSession(sessionID);
     const userid = results[0].ID;
 
-    console.log(userid);
+    //console.log(userid);
 
     req.user = {
       ID : userid
@@ -147,12 +145,12 @@ app.post("/api/createUser", (req, res) => {
   uc.updateSession(sessionID, data.user);
 
   res.status(201).json({ message: "User made successfully", data: data });
-  res.redirect("http://localhost:3000/"); //ISSUE CANNOT SEND MULTIPLE HEADERS AT ONCE
+  res.redirect(process.env.FRONTEND_URL); //ISSUE CANNOT SEND MULTIPLE HEADERS AT ONCE
   //TODO: REDO REDIRECTIONS SUCH THAT IT DOESN"T SEND MULTIPLE HEADERS AT ONCE
 });
 
 app.post("/api/updateUsername", (req, res) => {
-  console.log("Updating a user now...");
+  //console.log("Updating a user now...");
   const data = req.body;
   uc.updateUsername(data.user, data.username);
   res.send(
@@ -161,21 +159,21 @@ app.post("/api/updateUsername", (req, res) => {
 });
 
 app.post("/api/updateEmail", (req, res) => {
-  console.log("Updating a email now...");
+  //console.log("Updating a email now...");
   const data = req.body;
   uc.updateEmail(data.user, data.email);
   res.send("Old email: " + data.user.email + "\nNew email" + data.email);
 });
 
 app.post("/api/updatePassword", (req, res) => {
-  console.log("Updating a password now...");
+  //console.log("Updating a password now...");
   const data = req.body;
   uc.updatePassword(data.user, data.password);
   res.status(201).send();
 });
 
 app.post("/api/deleteUser", (req, res) => {
-  console.log("Deleting user...");
+  //console.log("Deleting user...");
   const data = req.body;
   uc.deleteUser(data.user);
   res
@@ -183,6 +181,6 @@ app.post("/api/deleteUser", (req, res) => {
     .json({ message: "User has been successfully deleted", data: data.user });
 });
 
-app.listen(PORT, () => {
-  console.log(`The app has started on port ${PORT}`);
+app.listen(process.env.PORT, () => {
+  //console.log(`The app has started on port ${process.env.PORT}`);
 });

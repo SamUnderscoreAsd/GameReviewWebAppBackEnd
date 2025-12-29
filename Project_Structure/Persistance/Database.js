@@ -15,9 +15,9 @@ class Database {
     this.con = null;
 
     this.pool = mysql.createPool({
-      host: "localhost",
+      host: process.env.HOST,
       user: "root",
-      password: "deez",
+      password: process.env.DBPASS,
       database: "USERDB",
       waitForConnections: true,
       connectionLimit: 10,
@@ -57,7 +57,7 @@ class Database {
   }
 
   async createReview(user, gameId, review, reviewScore) {
-    console.log("In the dB user.id is : " + JSON.stringify(user));
+    //console.log("In the dB user.id is : " + JSON.stringify(user));
     var insertSql = `INSERT INTO ${process.env.REVIEW_TABLE} (userId, gameId, review, reviewScore) VALUES(?,?,?,?)`;
 
     try {
