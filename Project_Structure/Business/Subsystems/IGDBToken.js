@@ -25,7 +25,7 @@ class IGDBToken{
             //console.log(data);
 
             this.accessToken = data.access_token;
-            console.log(this.accessToken);
+            console.log('this is the access token' + this.accessToken);
             this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
             console.log(`Token expires in: ${Math.floor(data.expires_in/3600)} hours`);
@@ -49,8 +49,23 @@ class IGDBToken{
         }
     }
 
+    async gameRequestHandler(requestType, value){
+
+        if(requestType === 'random'){
+            console.log('getting random games');
+            return this.getRandomGames();
+        }
+        else if(requestType === "detail"){
+            return this.getGameDetails(value);
+        }
+        else{
+            return this.getCategorizedGames(value);
+        }
+    }
+
     async getRandomGames(){
-        console.log(this.accessToken);
+        const offset = Math.floor(500 * Math.random());
+
         const url = "https://api.igdb.com/v4/games"
         try{
             const results = await fetch(url,{
@@ -60,15 +75,66 @@ class IGDBToken{
                     "Client-ID" : this.clientID,
                     "Authorization" : `Bearer ${this.accessToken}`,
                 },
-                body : "fields *;"
+                body : `fields name, rating, cover.image_id, artworks; limit 20; where rating > 90; offset ${offset};`
             })
 
             const data = await results.json();
+            //console.log(data);
             return data;
         }
         catch(e){
             console.log("the Get Random Games method failed ig :(" + e);
             console.error(e);
+        }
+    }
+
+
+
+    async getCategorizedGames(category){
+        const offset = Math.floor(200 * Math.random());
+
+        const url = "https://api.igdb.com/v4/games"
+        try{
+            const results = await fetch(url,{
+                method: 'POST',
+                headers: {
+                    "Accept": "application/json",
+                    "Client-ID" : this.clientID,
+                    "Authorization" : `Bearer ${this.accessToken}`,
+                },
+                body : `fields name, rating, cover.image_id, artworks; limit 15; offset ${offset};where rating > 60 & genres = ${category};`
+            })
+
+            const data = await results.json();
+            //console.log(data);
+            return data;
+        }
+        catch(e){
+            console.log("the Get Random Games method failed ig :(" + e);
+            console.error(e);
+        }
+    }
+
+     async getGameDetails(gameID){
+        const url = "https://api.igdb.com/v4/games"
+        
+        try{
+            const results = await fetch(url,{
+                method: 'POST',
+                headers: {
+                    "Accept": "application/json",
+                    "Client-ID" : this.clientID,
+                    "Authorization" : `Bearer ${this.accessToken}`,
+                },
+                body : `fields name, rating, rating_count, cover.image_id, summary, artworks;limit 1; where id = ${gameID};`
+            })
+
+            const data = await results.json();
+            //console.log(data);
+            return data;
+        }
+        catch(e){
+            console.log("the Get detail Games method failed ig :(" + e);
         }
     }
 }
