@@ -84,6 +84,8 @@ app.post("/api/login", async (req, res) => {
       res.cookie("SessionID", sessionID.toString(), {
         maxAge: 604800000, //7 days in ms
         httpOnly: true,
+        secure: true,
+        sameSite: 'none',
       });
       uc.updateSession(sessionID, data.user);
 
@@ -141,6 +143,8 @@ app.post("/api/createUser", (req, res) => {
   res.cookie("SessionID", sessionID.toString(), {
     maxAge: 604800000, //7 days in ms
     httpOnly: true,
+    secure: true,
+    sameSite: 'none',
   });
   uc.updateSession(sessionID, data.user);
 
