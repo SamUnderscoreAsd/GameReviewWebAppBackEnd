@@ -16,9 +16,10 @@ class Database {
 
     this.pool = mysql.createPool({
       host: process.env.HOST,
-      user: "root",
-      password: process.env.DBPASS,
-      database: "USERDB",
+      user: process.env.USER,
+      port: process.env.DBPORT,
+      password: process.env.PASS,
+      database: process.env.DATABASE,
       waitForConnections: true,
       connectionLimit: 10,
       maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
