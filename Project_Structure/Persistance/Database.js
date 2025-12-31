@@ -20,7 +20,7 @@ class Database {
     console.log("DB PORT: ",process.env.DBPORT );
     console.log(
       "DB_PASSWORD:",
-      process.env.PASS ? "***SET***" : "MISSING"
+      process.env.DBPASS ? "***SET***" : "MISSING"
     );
     console.log("DB_NAME:", process.env.DATABASE);
 
@@ -29,7 +29,7 @@ class Database {
       host: process.env.HOST,
       user: process.env.USER,
       port: process.env.DBPORT,
-      password: process.env.PASS,
+      password: process.env.DBPASS,
       database: process.env.DATABASE,
       waitForConnections: true,
       connectionLimit: 10,
