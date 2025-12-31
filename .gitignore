@@ -5,9 +5,9 @@ node_modules/
 .env
 OAuth2.0Credentials.PNG
 
-#database layout
-#linux version:
+#database 
 USERDB_BACKUP_UTF8.sql
+schema.sql
 
 #Testing folder that does matter
 coverage/

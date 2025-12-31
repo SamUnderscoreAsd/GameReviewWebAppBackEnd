@@ -145,8 +145,6 @@ app.post("/api/createUser", (req, res) => {
   uc.updateSession(sessionID, data.user);
 
   res.status(201).json({ message: "User made successfully", data: data });
-  res.redirect(process.env.FRONTEND_URL); //ISSUE CANNOT SEND MULTIPLE HEADERS AT ONCE
-  //TODO: REDO REDIRECTIONS SUCH THAT IT DOESN"T SEND MULTIPLE HEADERS AT ONCE
 });
 
 app.post("/api/updateUsername", (req, res) => {
