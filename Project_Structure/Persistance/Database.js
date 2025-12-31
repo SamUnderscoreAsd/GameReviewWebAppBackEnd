@@ -14,6 +14,15 @@ class Database {
   constructor() {
     this.con = null;
 
+    console.log("Environment check:");
+    console.log("DB_HOST:", process.env.DB_HOST);
+    console.log("DB_USER:", process.env.DB_USER);
+    console.log(
+      "DB_PASSWORD:",
+      process.env.DB_PASSWORD ? "***SET***" : "MISSING"
+    );
+    console.log("DB_NAME:", process.env.DB_NAME);
+
     this.pool = mysql.createPool({
       host: process.env.HOST,
       user: process.env.USER,
