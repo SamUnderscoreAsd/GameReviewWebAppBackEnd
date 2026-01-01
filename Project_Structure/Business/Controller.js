@@ -78,21 +78,16 @@ app.post("/api/login", async (req, res) => {
 
   const userID = await uc.authenticateUser(data.user);
 
-  if(userID){
+  if (userID) {
     sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
+    uc.updateSession(sessionID, data.user);
 
-      res.cookie("SessionID", sessionID.toString(), {
-        maxAge: 604800000, //7 days in ms
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        domain: undefined,
-        path: '/',
-      });
-      uc.updateSession(sessionID, data.user);
-
-      res.status(201).send(userID);
-    }
+    res.status(201).json({
+      message: "User has logged in successfully",
+      sessionID: sessionID,
+      userID: userID,
+    });
+  }
 });
 
 app.post("/api/createReview", sessionMiddleware,async (req,res)=>{
@@ -142,17 +137,20 @@ app.post("/api/createUser", (req, res) => {
   );
 
   sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
-  res.cookie("SessionID", sessionID.toString(), {
-    maxAge: 604800000, //7 days in ms
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    domain: undefined,
-    path: '/',
-  });
+  // res.cookie("SessionID", sessionID.toString(), {
+  //   maxAge: 604800000, //7 days in ms
+  //   httpOnly: true,
+  //   secure: true,
+  //   sameSite: 'none',
+  //   domain: undefined,
+  //   path: '/',
+  // });
   uc.updateSession(sessionID, data.user);
 
-  res.status(201).json({ message: "User made successfully", data: data });
+  res.status(201).json({
+      message: "User has been created Successfully",
+      sessionID: sessionID,
+    });
 });
 
 app.post("/api/updateUsername", (req, res) => {
