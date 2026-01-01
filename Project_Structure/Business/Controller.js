@@ -86,6 +86,8 @@ app.post("/api/login", async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
+        domain: undefined,
+        path: '/',
       });
       uc.updateSession(sessionID, data.user);
 
@@ -145,6 +147,8 @@ app.post("/api/createUser", (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: 'none',
+    domain: undefined,
+    path: '/',
   });
   uc.updateSession(sessionID, data.user);
 
