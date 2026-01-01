@@ -41,11 +41,12 @@ app.use(
   
   async function sessionMiddleware(req, res, next) {
     const sessionID = req.cookies.SessionID;
+    console.log(sessionID);
 
     const results = await uc.getSession(sessionID);
     const userid = results[0].ID;
 
-    //console.log(userid);
+    console.log("userId: ",userid, "\nresults:",results);
 
     req.user = {
       ID : userid
