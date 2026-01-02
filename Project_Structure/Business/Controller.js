@@ -78,10 +78,11 @@ app.post("/api/login", async (req, res) => {
   const data = req.body;
 
   const userID = await uc.authenticateUser(data.user);
+  console.log('userID: ',userID);
 
   if(userID){
-    sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
-
+      sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
+      console.log('User was authenticated begin sending the cookie');
       res.cookie("SessionID", sessionID.toString(), {
         maxAge: 604800000, //7 days in ms
         httpOnly: true,
@@ -89,6 +90,7 @@ app.post("/api/login", async (req, res) => {
         sameSite: 'none',
         path: '/',
       });
+      console.log("cookie sent, updating session now");
       uc.updateSession(sessionID, data.user);
 
       res.status(201).send(userID);
