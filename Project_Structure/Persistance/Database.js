@@ -175,7 +175,7 @@ class Database {
   }
 
   async retrieveSession(sessionID) {
-    var sql = `SELECT u.ID, u.username, s.Expires FROM ${process.env.USER_TABLE} u INNER JOIN ${process.env.SESSION_TABLE} s ON u.SessionID = s.sessionID WHERE s.sessionID = ?`
+    var sql = `SELECT u.ID, u.username, s.SessionID, s.Expires FROM ${process.env.USER_TABLE} u INNER JOIN ${process.env.SESSION_TABLE} s ON u.SessionID = s.sessionID WHERE s.sessionID = ?`
     try {
       const [result] = await this.pool.query(sql, [sessionID]);
       return result;
