@@ -31,25 +31,36 @@ app.use(
     //cors package basically allows the server to specify from where its expecting a request from. its a browser protocol to prevent malicious actors from
     //being able to send requests from outside the intended locations.
 
-    origin: process.env.FRONTEND_URL,
+    origin: [process.env.FRONTEND_URL, process.env.BACKEND_URL],
     //origin: "*",
 
-
-    credentials: true,//allows cookies to be sent
+    credentials: true, //allows cookies to be sent
   })
 );
   
   async function sessionMiddleware(req, res, next) {
     const sessionID = req.cookies.SessionID;
+    console.log(sessionID);
+
+    if(!sessionID){
+      console.log("The user doesn't have a valid session");
+      next();
+      return;
+    }
 
     const results = await uc.getSession(sessionID);
-    const userid = results[0].ID;
+    // const userid = results[0].ID;
 
-    //console.log(userid);
+    // console.log("userId: ",userid, "\nresults:",results);
 
     req.user = {
-      ID : userid
+      ID : results[0].ID,
+      username : results[0].username,
     };
+    req.session = {
+      SessionID : results[0].SessionID,
+      Expires : results[0].Expires,
+    }
     next();
   }
 
@@ -73,18 +84,52 @@ app.post("/api/retreiveSession", async (req, res) => {
     });
 });
 
+app.post("/api/validateSession", sessionMiddleware,async (req, res) =>{
+  console.log("This is the req.user in the validateSession endpoint",req.user);
+  console.log("This is the req.session in the validateSession endpoint",req.session);
+
+  if (req.session) {
+    if (req.session.Expires < Date.now()) {
+      console.log("sending the user back to login page");
+      res
+        .status(401)
+        .send({
+          isValid: false,
+          message: `The user doesn't have a valid session`,
+        });
+    } else {
+      console.log("Session token for user is valid, continuing");
+      res
+        .status(201)
+        .send({ isValid: true, message: `The user has a valid session` });
+    }
+  } else {
+    res
+      .status(401)
+      .send({
+        isValid: false,
+        message: `The user doesn't have a valid session`,
+      });
+  }
+});
+
 app.post("/api/login", async (req, res) => {
   const data = req.body;
 
   const userID = await uc.authenticateUser(data.user);
+  console.log('userID: ',userID);
 
   if(userID){
-    sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
-
+      sessionID = Math.floor(Math.random() * (99999999 - 1 + 1)) + 1; //floor(rand * (max - min + 1)) + min
+      console.log('User was authenticated begin sending the cookie');
       res.cookie("SessionID", sessionID.toString(), {
         maxAge: 604800000, //7 days in ms
         httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/',
       });
+      console.log("cookie sent, updating session now");
       uc.updateSession(sessionID, data.user);
 
       res.status(201).send(userID);
@@ -141,6 +186,9 @@ app.post("/api/createUser", (req, res) => {
   res.cookie("SessionID", sessionID.toString(), {
     maxAge: 604800000, //7 days in ms
     httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    path: '/',
   });
   uc.updateSession(sessionID, data.user);
 
