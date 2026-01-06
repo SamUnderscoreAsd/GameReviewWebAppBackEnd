@@ -58,6 +58,9 @@ class IGDBToken{
         else if(requestType === "detail"){
             return this.getGameDetails(value);
         }
+        else if(requestType === "search"){
+            return this.getGameSearch(value);
+        }
         else{
             return this.getCategorizedGames(value);
         }
@@ -135,6 +138,29 @@ class IGDBToken{
         }
         catch(e){
             console.log("the Get detail Games method failed ig :(" + e);
+        }
+    }
+
+    async getGameSearch(searchString){
+        const url = "https://api.igdb.com/v4/games"
+        
+        try{
+            const results = await fetch(url,{
+                method: 'POST',
+                headers: {
+                    "Accept": "application/json",
+                    "Client-ID" : this.clientID,
+                    "Authorization" : `Bearer ${this.accessToken}`,
+                },
+                body : `fields name, rating, rating_count, cover.image_id, summary, artworks;limit 10; search \"${searchString}\";`
+            })
+
+            const data = await results.json();
+            console.log(data);
+            return data;
+        }
+        catch(e){
+            console.log("the Get Games Search method failed ig :(" + e);
         }
     }
 }

@@ -70,6 +70,7 @@ app.post('/api/getGames', async (req,res)=>{
   await token.getValidToken();
   const body = req.body;
   const gameList = await token.gameRequestHandler(body.requestType, body.value);
+  console.log(body.requestType, body.value);
 
   res.status(200).send(gameList);
 });
